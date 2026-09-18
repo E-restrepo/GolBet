@@ -1,0 +1,168 @@
+@* GolBet.Web/Views/Bets/Index.cshtml *@
+@using GolBet.Entities.Enums
+@using GolBet.Web.Helpers
+@model IEnumerable<GolBet.Services.DTOs.BetDto>
+
+@{
+    ViewData["Title"] = "Mis Apuestas";
+    var balance = (decimal)(ViewBag.Balance ?? 1000m);
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="fw-bold mb-1">📋 Mis Apuestas</h2>
+        <p class="text-muted mb-0">Revisa el historial y estado de todas tus apuestas realizadas.</p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-light border rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2">
+            <span class="fs-5">🪙</span>
+            <div>
+                <small class="text-muted d-block lh-1" style="font-size: 0.75rem;">Saldo FutCoins</small>
+                <strong class="text-success fs-6">@balance.ToString("N0")</strong>
+            </div>
+        </div>
+        <form asp-action="ResetCoins" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Restablecer saldo a 1,000 FutCoins para pruebas">
+                🔄 Recargar
+            </button>
+        </form>
+        <a asp-controller="Matches" asp-action="Index" class="btn btn-success">
+            ⚽ Ir a Cartelera
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <strong>✅ ¡Éxito!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <strong>⚠️ Atención:</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm text-center py-5 rounded-3">
+        <div class="card-body">
+            <div class="display-1 mb-3">🎫</div>
+            <h4 class="fw-bold">Aún no has realizado apuestas</h4>
+            <p class="text-muted mb-4">Tienes <strong>@balance.ToString("N0") FutCoins</strong> listos para pronosticar los mejores partidos.</p>
+            <a asp-controller="Matches" asp-action="Index" class="btn btn-success btn-lg px-4 shadow-sm">
+                ⚽ Explorar Cartelera de Partidos
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Partido</th>
+                        <th>Selección</th>
+                        <th class="text-center">Cuota</th>
+                        <th class="text-end">Apostado</th>
+                        <th class="text-end">Retorno Potencial</th>
+                        <th class="text-center">Estado Apuesta</th>
+                        <th class="pe-4 text-center">Estado Partido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var bet in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="@(bet.HomeTeamCrestUrl ?? "https://placehold.co/32x32")"
+                                         alt="@bet.HomeTeamName" width="28" height="28" class="rounded-circle" />
+                                    <span class="fw-semibold">@bet.HomeTeamName</span>
+                                    <span class="text-muted small">vs</span>
+                                    <span class="fw-semibold">@bet.AwayTeamName</span>
+                                    <img src="@(bet.AwayTeamCrestUrl ?? "https://placehold.co/32x32")"
+                                         alt="@bet.AwayTeamName" width="28" height="28" class="rounded-circle" />
+                                </div>
+                                <small class="text-muted">
+                                    📅 @bet.MatchDate.ToColombiaTime().ToString("ddd dd MMM · h:mm tt")
+                                </small>
+                            </td>
+
+                            <td>
+                                @switch (bet.Pick)
+                                {
+                                    case BetPick.Home:
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                                            1 · Local (@bet.HomeTeamName)
+                                        </span>
+                                        break;
+                                    case BetPick.Draw:
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                                            X · Empate
+                                        </span>
+                                        break;
+                                    case BetPick.Away:
+                                        <span class="badge bg-info bg-opacity-10 text-dark border border-info border-opacity-25 px-2 py-1">
+                                            2 · Visitante (@bet.AwayTeamName)
+                                        </span>
+                                        break;
+                                }
+                            </td>
+
+                            <td class="text-center fw-bold">
+                                @bet.OddsAtPlacement.ToString("0.00")
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                @bet.Amount.ToString("N0") <small class="text-muted">FC</small>
+                            </td>
+
+                            <td class="text-end fw-bold text-success">
+                                @bet.PotentialPayout.ToString("N0") <small class="text-muted">FC</small>
+                            </td>
+
+                            <td class="text-center">
+                                @switch (bet.Status)
+                                {
+                                    case BetStatus.Pending:
+                                        <span class="badge bg-warning text-dark px-3 py-1">Pendiente</span>
+                                        break;
+                                    case BetStatus.Won:
+                                        <span class="badge bg-success px-3 py-1">Ganada</span>
+                                        break;
+                                    case BetStatus.Lost:
+                                        <span class="badge bg-danger px-3 py-1">Perdida</span>
+                                        break;
+                                }
+                            </td>
+
+                            <td class="pe-4 text-center">
+                                @switch (bet.MatchStatus)
+                                {
+                                    case MatchStatus.Scheduled:
+                                        <span class="text-muted small">Por jugar</span>
+                                        break;
+                                    case MatchStatus.InProgress:
+                                        <span class="badge bg-danger">En Vivo</span>
+                                        break;
+                                    case MatchStatus.Finished:
+                                        <span class="badge bg-light text-dark border">@bet.HomeGoals - @bet.AwayGoals</span>
+                                        break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
