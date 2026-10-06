@@ -1,0 +1,29 @@
+@model GolBet.Services.DTOs.TeamFormDto
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<input type="hidden" asp-for="Id" />
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="City" class="form-label"></label>
+    <input asp-for="City" class="form-control" />
+    <span asp-validation-for="City" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="CrestUrl" class="form-label"></label>
+    <input asp-for="CrestUrl" class="form-control" />
+    <span asp-validation-for="CrestUrl" class="text-danger"></span>
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-success">
+        @(Model?.Id == 0 ? "Crear equipo" : "Guardar cambios")
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</div>

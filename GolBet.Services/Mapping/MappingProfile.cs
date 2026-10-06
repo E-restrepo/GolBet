@@ -12,6 +12,10 @@ public class MappingProfile : Profile
         // MatchDto.AwayTeamCrestUrl <- Match.AwayTeam.CrestUrl 
 
         CreateMap<Match, MatchDto>();
+        CreateMap<Match, MatchFormDto>().ReverseMap();
+
+        CreateMap<Team, TeamDto>();
+        CreateMap<Team, TeamFormDto>().ReverseMap();
 
         CreateMap<Match, MatchDetailDto>()
             .ForMember(dto => dto.TotalBets,

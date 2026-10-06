@@ -1,0 +1,60 @@
+@model IEnumerable<GolBet.Services.DTOs.TeamDto>
+
+@{
+    ViewData["Title"] = "Equipos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🛡️ Equipos</h2>
+    <a asp-action="Create" class="btn btn-success">
+        + Nuevo equipo
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Escudo</th>
+                    <th>Nombre</th>
+                    <th>Ciudad</th>
+                    <th class="text-end" style="width: 200px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var team in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(team.CrestUrl))
+                            {
+                                <img src="@team.CrestUrl" alt="@team.Name" style="width: 40px; height: 40px; object-fit: contain;" />
+                            }
+                            else
+                            {
+                                <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center"
+                                     style="width: 40px; height: 40px; font-size: 0.8rem; font-weight: bold;">
+                                    FC
+                                </div>
+                            }
+                        </td>
+                        <td class="fw-bold">@team.Name</td>
+                        <td>@team.City</td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@team.Id" class="btn btn-sm btn-outline-primary me-1">
+                                Editar
+                            </a>
+                            <form asp-action="Deactivate" asp-route-id="@team.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('¿Está seguro de que desea desactivar este equipo?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    Desactivar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

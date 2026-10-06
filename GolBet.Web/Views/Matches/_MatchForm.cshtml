@@ -1,0 +1,75 @@
+@model GolBet.Services.DTOs.MatchFormDto
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<input type="hidden" asp-for="Id" />
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="HomeTeamId" class="form-label"></label>
+        <select asp-for="HomeTeamId" asp-items="ViewBag.Teams" class="form-select">
+            <option value="">-- Seleccionar equipo local --</option>
+        </select>
+        <span asp-validation-for="HomeTeamId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="AwayTeamId" class="form-label"></label>
+        <select asp-for="AwayTeamId" asp-items="ViewBag.Teams" class="form-select">
+            <option value="">-- Seleccionar equipo visitante --</option>
+        </select>
+        <span asp-validation-for="AwayTeamId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" type="datetime-local" class="form-control"
+               value="@(Model != null && Model.Date != default ? Model.Date.ToString("yyyy-MM-ddTHH:mm") : "")" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Status" class="form-label"></label>
+        <select asp-for="Status" asp-items="Html.GetEnumSelectList<GolBet.Entities.Enums.MatchStatus>()" class="form-select"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="HomeOdds" class="form-label"></label>
+        <input asp-for="HomeOdds" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="HomeOdds" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="DrawOdds" class="form-label"></label>
+        <input asp-for="DrawOdds" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="DrawOdds" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="AwayOdds" class="form-label"></label>
+        <input asp-for="AwayOdds" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="AwayOdds" class="text-danger"></span>
+    </div>
+
+    @if (Model != null && Model.Id > 0)
+    {
+        <div class="col-md-6">
+            <label asp-for="HomeGoals" class="form-label"></label>
+            <input asp-for="HomeGoals" type="number" min="0" class="form-control" />
+            <span asp-validation-for="HomeGoals" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="AwayGoals" class="form-label"></label>
+            <input asp-for="AwayGoals" type="number" min="0" class="form-control" />
+            <span asp-validation-for="AwayGoals" class="text-danger"></span>
+        </div>
+    }
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-success">
+        @(Model?.Id == 0 ? "Crear partido" : "Guardar cambios")
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</div>
