@@ -1,17 +1,87 @@
-﻿using GolBet.Entities;
+using GolBet.Entities;
 using GolBet.Entities.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace GolBet.Repositories.Data;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext context)
+    public const string AdminRole = "Admin";
+    public const string BetterRole = "Better";
+
+    public static async Task SeedAsync(
+        AppDbContext context,
+        RoleManager<IdentityRole> roleManager,
+        UserManager<AppUser> userManager)
     {
         // Applies any pending migration (creates the DB if it does not exist) 
-
         await context.Database.MigrateAsync();
 
+        await SeedIdentityAsync(roleManager, userManager);
+        await SeedDomainAsync(context);
+    }
+
+    private static async Task SeedIdentityAsync(
+        RoleManager<IdentityRole> roleManager,
+        UserManager<AppUser> userManager)
+    {
+        // ---- Roles ----
+        if (!await roleManager.RoleExistsAsync(AdminRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole(AdminRole));
+        }
+
+        if (!await roleManager.RoleExistsAsync(BetterRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole(BetterRole));
+        }
+
+        // ---- Admin user ----
+        var adminEmail = "admin@golbet.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser is null)
+        {
+            adminUser = new AppUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FullName = "Administrador GolBet",
+                EmailConfirmed = true,
+                Balance = 0m
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "Admin123*");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, AdminRole);
+            }
+        }
+
+        // ---- Better user ----
+        var betterEmail = "better@golbet.com";
+        var betterUser = await userManager.FindByEmailAsync(betterEmail);
+        if (betterUser is null)
+        {
+            betterUser = new AppUser
+            {
+                UserName = betterEmail,
+                Email = betterEmail,
+                FullName = "Apostador GolBet",
+                EmailConfirmed = true,
+                Balance = 100000m
+            };
+
+            var result = await userManager.CreateAsync(betterUser, "Better123*");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(betterUser, BetterRole);
+            }
+        }
+    }
+
+    private static async Task SeedDomainAsync(AppDbContext context)
+    {
         if (await context.Teams.AnyAsync()) return;   // idempotence guard 
 
         // ---- Teams ---- 

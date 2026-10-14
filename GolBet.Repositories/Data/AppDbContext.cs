@@ -1,9 +1,10 @@
-﻿using GolBet.Entities;
+using GolBet.Entities;
 using GolBet.Entities.Common;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GolBet.Repositories.Data;
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<AppUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
     public DbSet<Team> Teams => Set<Team>();
@@ -13,6 +14,11 @@ public class AppDbContext : DbContext
 
     {
         base.OnModelCreating(modelBuilder);
+
+        // AppUser precision
+        modelBuilder.Entity<AppUser>()
+            .Property(u => u.Balance)
+            .HasPrecision(12, 2);
 
         // Team names must be unique (case- and accent-insensitive) 
 
@@ -44,6 +50,18 @@ public class AppDbContext : DbContext
             .HasOne(b => b.Match)
             .WithMany(m => m.Bets)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Relationship Bet -> User
+        modelBuilder.Entity<Bet>()
+            .HasOne(b => b.User)
+            .WithMany(u => u.Bets)
+            .HasForeignKey(b => b.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Rule 3: A user cannot repeat a bet with the same pick on the same match
+        modelBuilder.Entity<Bet>()
+            .HasIndex(b => new { b.MatchId, b.UserId, b.Pick })
+            .IsUnique();
 
     }
 

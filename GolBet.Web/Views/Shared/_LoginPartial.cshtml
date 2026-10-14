@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Identity
+@using GolBet.Entities
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    var appUser = await UserManager.GetUserAsync(User);
+    <li class="nav-item d-flex align-items-center me-3 text-white">
+        <span class="me-2">👤 @appUser?.FullName</span>
+        @if (!User.IsInRole("Admin"))
+        {
+            <span class="badge bg-warning text-dark me-2">
+                🪙 @((appUser?.Balance ?? 0).ToString("N0")) FootCoins
+            </span>
+        }
+    </li>
+    <li class="nav-item">
+        <form class="d-inline" asp-controller="Account" asp-action="Logout" method="post">
+            <button type="submit" class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-white" asp-controller="Account" asp-action="Login">Iniciar sesión</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-white" asp-controller="Account" asp-action="Register">Registrarse</a>
+    </li>
+}
+</ul>

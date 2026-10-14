@@ -87,9 +87,12 @@
         <small class="text-muted">🎟️ @Model.TotalBets apuestas realizadas</small>
 
         <div class="d-flex gap-2">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
-                Editar partido
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                    Editar partido
+                </a>
+            }
             @if (Model.Status == MatchStatus.Scheduled)
             {
                 <button class="btn btn-success" disabled

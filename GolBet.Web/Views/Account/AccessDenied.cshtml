@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 text-center">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">⛔ Acceso denegado</h4>
+            </div>
+            <div class="card-body py-4">
+                <p class="fs-5 text-muted mb-4">Tu cuenta no tiene permisos para esta página.</p>
+                <a asp-controller="Matches" asp-action="Index" class="btn btn-success">
+                    Volver a la cartelera
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
