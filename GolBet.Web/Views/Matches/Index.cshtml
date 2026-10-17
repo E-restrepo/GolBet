@@ -9,25 +9,51 @@
 
 @{
     var current = (MatchStatus?)ViewBag.CurrentStatus;
+    var searchTerm = ViewBag.SearchTerm as string;
 }
 
-<div class="d-flex gap-2 flex-wrap mb-4">
-    <a asp-action="Index"
-       class="btn btn-sm @(current is null ? "btn-success" : "btn-outline-success")">
-        Todos
-    </a>
-    <a asp-action="Index" asp-route-status="@MatchStatus.Scheduled"
-       class="btn btn-sm @(current == MatchStatus.Scheduled ? "btn-success" : "btn-outline-success")">
-        Programados
-    </a>
-    <a asp-action="Index" asp-route-status="@MatchStatus.InProgress"
-       class="btn btn-sm @(current == MatchStatus.InProgress ? "btn-success" : "btn-outline-success")">
-        En juego
-    </a>
-    <a asp-action="Index" asp-route-status="@MatchStatus.Finished"
-       class="btn btn-sm @(current == MatchStatus.Finished ? "btn-success" : "btn-outline-success")">
-        Finalizados
-    </a>
+<div class="row g-3 align-items-center mb-4">
+    <div class="col-12 col-lg-7 d-flex gap-2 flex-wrap">
+        <a asp-action="Index" asp-route-searchTerm="@searchTerm"
+           class="btn btn-sm @(current is null ? "btn-success" : "btn-outline-success")">
+            Todos
+        </a>
+        <a asp-action="Index" asp-route-status="@MatchStatus.Scheduled" asp-route-searchTerm="@searchTerm"
+           class="btn btn-sm @(current == MatchStatus.Scheduled ? "btn-success" : "btn-outline-success")">
+            Programados
+        </a>
+        <a asp-action="Index" asp-route-status="@MatchStatus.InProgress" asp-route-searchTerm="@searchTerm"
+           class="btn btn-sm @(current == MatchStatus.InProgress ? "btn-success" : "btn-outline-success")">
+            En juego
+        </a>
+        <a asp-action="Index" asp-route-status="@MatchStatus.Finished" asp-route-searchTerm="@searchTerm"
+           class="btn btn-sm @(current == MatchStatus.Finished ? "btn-success" : "btn-outline-success")">
+            Finalizados
+        </a>
+    </div>
+
+    <!-- Buscador de Partidos -->
+    <div class="col-12 col-lg-5">
+        <form asp-action="Index" method="get">
+            @if (current.HasValue)
+            {
+                <input type="hidden" name="status" value="@current.Value" />
+            }
+            <div class="input-group input-group-sm shadow-sm">
+                <input type="text" name="searchTerm" value="@searchTerm" class="form-control"
+                       placeholder="Buscar por equipo o ciudad..." aria-label="Buscar partidos" />
+                <button type="submit" class="btn btn-primary">
+                    🔍 Buscar
+                </button>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a asp-action="Index" asp-route-status="@current" class="btn btn-outline-secondary" title="Limpiar búsqueda">
+                        ✕ Limpiar
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -40,6 +66,29 @@
     }
 </div>
 
+@if (!Model.Any())
+{
+    <div class="alert alert-info d-flex align-items-center justify-content-between p-4 my-4 rounded shadow-sm" role="alert">
+        <div>
+            <h5 class="alert-heading mb-1">🔍 No se encontraron partidos</h5>
+            <p class="mb-0">
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>No hay coincidencias para el término <strong>"@searchTerm"</strong>@(current.HasValue ? $" con estado '{current}'" : "").</span>
+                }
+                else
+                {
+                    <span>No hay partidos registrados para el filtro seleccionado.</span>
+                }
+            </p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-sm btn-outline-primary">Ver todos los partidos</a>
+        </div>
+    </div>
+}
+else
+{
 <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
     @foreach (var match in Model)
     {
@@ -167,3 +216,4 @@
     }
 
 </div>
+}

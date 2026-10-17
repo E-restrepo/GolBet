@@ -17,9 +17,18 @@ public class TeamService : ITeamService
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<TeamDto>> GetAllAsync()
+    public async Task<IEnumerable<TeamDto>> GetAllAsync(string? searchTerm = null)
     {
         var teams = await _teamRepository.GetAllAsync();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            teams = teams.Where(t =>
+                t.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(t.City) && t.City.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
         return _mapper.Map<IEnumerable<TeamDto>>(teams);
     }
 

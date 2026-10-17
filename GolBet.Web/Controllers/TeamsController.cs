@@ -16,10 +16,12 @@ public class TeamsController : Controller
     }
 
     // GET /Teams
+    // GET /Teams?searchTerm=Medellin
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm)
     {
-        var teams = await _teamService.GetAllAsync();
+        ViewBag.SearchTerm = searchTerm;
+        var teams = await _teamService.GetAllAsync(searchTerm);
         return View(teams);
     }
 
