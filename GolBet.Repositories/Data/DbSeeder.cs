@@ -8,6 +8,7 @@ namespace GolBet.Repositories.Data;
 public static class DbSeeder
 {
     public const string AdminRole = "Admin";
+    public const string BettorRole = "Bettor";
     public const string BetterRole = "Better";
 
     public static async Task SeedAsync(
@@ -30,6 +31,11 @@ public static class DbSeeder
         if (!await roleManager.RoleExistsAsync(AdminRole))
         {
             await roleManager.CreateAsync(new IdentityRole(AdminRole));
+        }
+
+        if (!await roleManager.RoleExistsAsync(BettorRole))
+        {
+            await roleManager.CreateAsync(new IdentityRole(BettorRole));
         }
 
         if (!await roleManager.RoleExistsAsync(BetterRole))
@@ -58,7 +64,7 @@ public static class DbSeeder
             }
         }
 
-        // ---- Better user ----
+        // ---- Bettor user ----
         var betterEmail = "better@golbet.com";
         var betterUser = await userManager.FindByEmailAsync(betterEmail);
         if (betterUser is null)
@@ -75,7 +81,15 @@ public static class DbSeeder
             var result = await userManager.CreateAsync(betterUser, "Better123*");
             if (result.Succeeded)
             {
+                await userManager.AddToRoleAsync(betterUser, BettorRole);
                 await userManager.AddToRoleAsync(betterUser, BetterRole);
+            }
+        }
+        else
+        {
+            if (!await userManager.IsInRoleAsync(betterUser, BettorRole))
+            {
+                await userManager.AddToRoleAsync(betterUser, BettorRole);
             }
         }
     }

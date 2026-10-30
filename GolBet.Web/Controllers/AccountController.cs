@@ -52,6 +52,7 @@ public class AccountController : Controller
             return View(model);
         }
 
+        await _userManager.AddToRoleAsync(user, DbSeeder.BettorRole);
         await _userManager.AddToRoleAsync(user, DbSeeder.BetterRole);
         await _signInManager.SignInAsync(user, isPersistent: false);
 

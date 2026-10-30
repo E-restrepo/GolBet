@@ -1,80 +1,73 @@
+using GolBet.Entities;
 using GolBet.Services.DTOs;
 using GolBet.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GolBet.Web.Controllers;
 
+[Authorize(Roles = "Bettor,Better")]
 public class BetsController : Controller
 {
     private readonly IBetService _betService;
-    private const string SessionBalanceKey = "UserFutCoins";
-    private const decimal InitialBalance = 1000m;
+    private readonly UserManager<AppUser> _userManager;
 
-    public BetsController(IBetService betService)
+    public BetsController(IBetService betService, UserManager<AppUser> userManager)
     {
         _betService = betService;
+        _userManager = userManager;
     }
 
-    private decimal GetCurrentBalance()
+    // GET: /Bets/MyBets
+    [HttpGet]
+    public async Task<IActionResult> MyBets()
     {
-        var balanceStr = HttpContext.Session.GetString(SessionBalanceKey);
-        if (decimal.TryParse(balanceStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var balance) && balance > 0)
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrEmpty(userId))
         {
-            return balance;
+            return Challenge();
         }
 
-        SetBalance(InitialBalance);
-        return InitialBalance;
-    }
-
-    private void SetBalance(decimal balance)
-    {
-        HttpContext.Session.SetString(SessionBalanceKey, balance.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        var bets = await _betService.GetMyBetsAsync(userId);
+        return View(bets);
     }
 
     // GET: /Bets
-    public async Task<IActionResult> Index()
-    {
-        ViewBag.Balance = GetCurrentBalance();
-        var bets = await _betService.GetUserBetsAsync();
-        return View(bets);
-    }
+    [HttpGet]
+    public IActionResult Index() => RedirectToAction(nameof(MyBets));
 
     // POST: /Bets/Place
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Place(CreateBetDto dto, string? returnUrl = null)
+    public async Task<IActionResult> Place(BetFormDto dto)
     {
-        var currentBalance = GetCurrentBalance();
-
-        if (dto.Amount > currentBalance)
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrEmpty(userId))
         {
-            TempData["Error"] = $"Saldo insuficiente. Tienes {currentBalance:N0} FutCoins e intentaste apostar {dto.Amount:N0} FutCoins.";
-            return Redirect(returnUrl ?? Url.Action("Index", "Matches") ?? "/Matches");
+            return Challenge();
         }
 
-        var (success, message, createdBet) = await _betService.PlaceBetAsync(dto);
-
-        if (!success)
+        if (!ModelState.IsValid)
         {
-            TempData["Error"] = message;
-            return Redirect(returnUrl ?? Url.Action("Index", "Matches") ?? "/Matches");
+            TempData["Error"] = "Por favor ingresa un monto válido.";
+            return RedirectToAction("Detail", "Matches", new { id = dto.MatchId });
         }
 
-        // Deduct bet amount from session
-        SetBalance(currentBalance - dto.Amount);
+        try
+        {
+            await _betService.PlaceBetAsync(userId, dto);
+            TempData["Success"] = $"¡Apuesta registrada! {dto.Amount:N0} FootCoins en juego. ¡Suerte!";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
+        catch (Exception)
+        {
+            TempData["Error"] = "Ocurrió un error inesperado al procesar la apuesta.";
+        }
 
-        TempData["Success"] = $"{message} Se descontaron {dto.Amount:N0} FutCoins. Posible retorno: {createdBet?.PotentialPayout:N0} FutCoins.";
-        return RedirectToAction(nameof(Index));
-    }
-
-    // POST: /Bets/ResetCoins
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult ResetCoins()
-    {
-        SetBalance(InitialBalance);
-        TempData["Success"] = $"¡Saldo recargado exitosamente con {InitialBalance:N0} FutCoins de prueba!";
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction("Detail", "Matches", new { id = dto.MatchId });
     }
 }

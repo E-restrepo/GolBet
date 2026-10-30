@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var culture = new CultureInfo("es-CO");
+culture.NumberFormat.NumberDecimalSeparator = ".";
+culture.NumberFormat.CurrencyDecimalSeparator = ".";
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 

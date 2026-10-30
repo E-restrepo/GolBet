@@ -33,6 +33,12 @@
                                 <a class="nav-link" asp-controller="Teams" asp-action="Index">Equipos</a>
                             </li>
                         }
+                        @if (User.IsInRole("Bettor") || User.IsInRole("Better"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Bets" asp-action="MyBets">Mis apuestas</a>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
